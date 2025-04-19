@@ -1,0 +1,215 @@
+📁 Arborescence
+
+LudusLinguarum/
+├── index.html
+├── style.css
+├── app.js
+├── blason.svg
+├── README.md
+├── parchemin_bg.jpg        ← (à ajouter toi-même)
+└── audio/
+    └── salve.mp3           ← (à ajouter toi-même)
+
+📄 index.html
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ludus Linguarum</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="parchment">
+    <header>
+      <img src="blason.svg" alt="Blason" class="blason"/>
+      <h1>Ludus Linguarum</h1>
+      <p>Le Chemin du Savoir</p>
+    </header>
+
+    <main id="map">
+      <!-- Les unités apparaîtront ici -->
+    </main>
+
+    <section id="xp-display">🏅 Écus d’or : <span id="xp">0</span></section>
+
+    <section id="grimoire">
+      <h2>📖 Grimoire</h2>
+      <ul id="journal"></ul>
+    </section>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
+
+🎨 style.css
+
+body {
+  background: url('parchemin_bg.jpg');
+  font-family: 'Garamond', serif;
+  margin: 0;
+  color: #4b2e2e;
+}
+.parchment {
+  max-width: 960px;
+  margin: auto;
+  padding: 20px;
+  background: rgba(255, 248, 220, 0.95);
+  border: 3px solid #7c0a02;
+  border-radius: 20px;
+}
+header {
+  text-align: center;
+}
+.blason {
+  width: 80px;
+}
+h1 {
+  font-family: 'Old English Text MT', serif;
+  font-size: 2.5em;
+  color: #7c0a02;
+}
+.unit {
+  background: #fdf7e3;
+  border: 2px solid #7c0a02;
+  border-radius: 12px;
+  margin: 20px 0;
+  padding: 15px;
+}
+.locked {
+  opacity: 0.4;
+}
+button {
+  margin: 8px 0;
+  background: #7c0a02;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+#xp-display {
+  font-size: 1.3em;
+  text-align: center;
+  margin-top: 30px;
+}
+#grimoire {
+  margin-top: 30px;
+  background: #eee2c2;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px dashed #7c0a02;
+}
+
+⚙️ app.js
+
+let xp = parseInt(localStorage.getItem("xp")) || 0;
+let completed = parseInt(localStorage.getItem("completed")) || 0;
+let journal = JSON.parse(localStorage.getItem("journal")) || [];
+
+function updateXP(points, msg) {
+  xp += points;
+  localStorage.setItem("xp", xp);
+  document.getElementById("xp").textContent = xp;
+  journal.push(msg);
+  localStorage.setItem("journal", JSON.stringify(journal));
+  renderJournal();
+}
+
+function renderJournal() {
+  const journalList = document.getElementById("journal");
+  journalList.innerHTML = "";
+  journal.forEach(entry => {
+    const li = document.createElement("li");
+    li.textContent = entry;
+    journalList.appendChild(li);
+  });
+}
+
+function createLesson(i) {
+  const unit = document.createElement("div");
+  unit.className = "unit";
+  if (i > completed + 1) {
+    unit.classList.add("locked");
+    unit.innerHTML = `<h2>Unité ${i} 🔒</h2><p>Verrouillée. Terminez l’unité ${i - 1}.</p>`;
+  } else {
+    unit.innerHTML = `
+      <h2>Unité ${i}</h2>
+      <p><strong>QCM :</strong> "Bonjour" se dit :</p>
+      <button onclick="gainXP(${i}, 'Salve', 'Salve')">Salve</button>
+      <button onclick="gainXP(${i}, 'Vale', 'Salve')">Vale</button>
+
+      <p><strong>Complétion :</strong> Complétez : "______ discipulus es."</p>
+      <input id="fill-${i}" placeholder="Mot manquant"/>
+      <button onclick="checkFill(${i}, 'tuus')">Valider</button>
+
+      <p><strong>Traduction :</strong> Que signifie "Gratias tibi ago" ?</p>
+      <select id="trad-${i}">
+        <option>Merci</option><option>Salut</option><option>Je t’aime</option>
+      </select>
+      <button onclick="checkTrad(${i}, 'Merci')">Valider</button>
+
+      <p><strong>Audio :</strong> Écoutez et répétez :</p>
+      <audio controls src="audio/salve.mp3"></audio>
+    `;
+  }
+  return unit;
+}
+
+function gainXP(unit, chosen, correct) {
+  if (chosen === correct) {
+    updateXP(10, `Unité ${unit} : QCM réussi`);
+  }
+}
+
+function checkFill(unit, answer) {
+  const val = document.getElementById(`fill-${unit}`).value.toLowerCase().trim();
+  if (val === answer) {
+    updateXP(10, `Unité ${unit} : complétion réussie`);
+  }
+}
+
+function checkTrad(unit, correct) {
+  const val = document.getElementById(`trad-${unit}`).value;
+  if (val === correct) {
+    updateXP(10, `Unité ${unit} : traduction réussie`);
+    if (unit > completed) {
+      completed = unit;
+      localStorage.setItem("completed", completed);
+      location.reload();
+    }
+  }
+}
+
+document.getElementById("xp").textContent = xp;
+renderJournal();
+
+const map = document.getElementById("map");
+for (let i = 1; i <= 10; i++) {
+  map.appendChild(createLesson(i));
+}
+
+🛡️ blason.svg
+
+🔊 audio/salve.mp3
+
+➡️ Crée un dossier audio
+➡️ Ajoute dedans un fichier audio nommé salve.mp3
+Tu peux l’enregistrer toi-même ou chercher un audio latin “Salve” libre de droits.
+🖼️ parchemin_bg.jpg
+
+➡️ Télécharge une image de fond parchemin (ex. sur Unsplash)
+➡️ Nomme-la parchemin_bg.jpg et place-la dans le même dossier.
+📘 README.md (optionnel)
+
+# Ludus Linguarum 🏰
+
+Une application pédagogique médiévale pour apprendre le latin à travers un parcours interactif sur une carte, avec écus d’or, exercices variés et ambiance parcheminée !
+
+## Fonctionnalités
+
+- 10 unités avec progression et déblocage
+- Système de points (écus)
+- Grimoire de progression
+- Audio d'écoute
+- Design gothique français
